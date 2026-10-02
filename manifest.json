@@ -1,0 +1,9 @@
+{
+  "name": "Zap Status Pronto - Legendas Virais",
+  "short_name": "Status Pronto",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0b141a",
+  "theme_color": "#25D366",
+  "icons": [{ "src": "icone-myknay.png", "sizes": "512x512", "type": "image/png" }]
+}
