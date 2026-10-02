@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Zap Status Pronto - Legendas Virais</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icone-myknay.png">
+<meta name="theme-color" content="#25D366">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{background:#0b141a;color:#fff;font-family:Arial;padding-bottom:20px}
+.header{background:#25D366;padding:14px;text-align:center;font-weight:900;font-size:19px;display:flex;align-items:center;justify-content:center;gap:8px;color:#000}
+.card{background:#202c33;border-radius:16px;margin:10px;padding:12px;border:1px solid #2a3942}
+.btn{border:none;padding:12px 16px;border-radius:12px;font-weight:900;width:100%;margin:6px 0;font-size:14px}
+.btn-green{background:#25D366;color:#000}
+.btn-dark{background:#2a3942;color:#fff}
+.btn-yellow{background:#ffcc00;color:#000}
+.input{width:100%;padding:12px;border-radius:10px;border:1px solid #2a3942;background:#111b21;color:#fff;margin:6px 0;font-size:16px}
+.label{font-size:12px;color:#8696a0;font-weight:900;margin:10px 0 4px;display:block}
+#previewWrap{position:relative;width:100%;max-width:360px;margin:0 auto;background:#000;border-radius:16px;overflow:hidden;aspect-ratio:9/16}
+#videoPreview{width:100%;height:100%;object-fit:cover}
+#canvasLegenda{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.estilos{display:flex;gap:8px;overflow-x:auto;padding:6px 0}
+.estilo{min-width:80px;height:64px;border-radius:12px;background:#111b21;border:2px solid transparent;display:flex;align-items:center;justify-content:center;font-weight:900;text-align:center;font-size:11px;flex-shrink:0}
+.estilo.ativo{border-color:#25D366;background:#1a3a2a}
+.musicas{display:flex;gap:8px;overflow-x:auto;padding:6px 0}
+.musica{min-width:100px;background:#111b21;border-radius:12px;padding:8px;text-align:center;border:2px solid transparent;flex-shrink:0}
+.musica.ativa{border-color:#25D366}
+#legendaAuto{background:#111b21;border-radius:12px;padding:10px;max-height:160px;overflow:auto;margin:6px 0;border:1px dashed #2a3942}
+.palavra{display:inline-block;background:#25D366;color:#000;padding:2px 6px;border-radius:6px;margin:2px;font-size:12px;font-weight:900}
+</style>
+</head>
+<body>
+<div class="header">Zap Status Pronto 🔥</div>
+<div class="card">
+<div class="label">1️⃣ SEU VÍDEO</div>
+<input type="file" id="fileVideo" accept="video/*" style="display:none">
+<button class="btn btn-green" onclick="document.getElementById('fileVideo').click()">📂 ESCOLHER VÍDEO</button>
+<button class="btn btn-dark" onclick="abrirCamera()">📹 GRAVAR AGORA</button>
+<div style="display:flex;gap:6px"><button class="btn btn-dark" style="flex:1" onclick="removerVideo()">🗑️ REMOVER</button><button class="btn btn-dark" style="flex:1" onclick="espelhar()">🪞 ESPELHAR</button></div>
+<div id="previewWrap" style="margin-top:10px;display:none"><video id="videoPreview" playsinline loop muted></video><canvas id="canvasLegenda"></canvas></div>
+</div>
+<div class="card">
+<div class="label">2️⃣ LEGENDA AUTOMÁTICA ESTILO KWAI</div>
+<textarea id="textoLegenda" class="input" rows="2" placeholder="Digite sua frase viral... Ex: FIQUEI RICO COM ISSO!"></textarea>
+<button class="btn btn-yellow" onclick="gerarAuto()">✨ GERAR FRASE VIRAL</button>
+<button class="btn btn-dark" onclick="transcrever()">🎙️ FALAR E TRANSCREVER</button>
+<div id="legendaAuto"><small style="color:#8696a0">Suas palavras aparecerão aqui</small></div>
+<div class="label">ESTILO DA LEGENDA</div><div class="estilos" id="estilosBox"></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px"><div><span class="label">TAMANHO</span><input type="range" id="rangeSize" min="20" max="60" value="38" oninput="desenharLegenda()" style="width:100%"></div><div><span class="label">POSIÇÃO</span><input type="range" id="rangeY" min="10" max="90" value="75" oninput="desenharLegenda()" style="width:100%"></div></div>
+</div>
+<div class="card"><div class="label">3️⃣ MÚSICA VIRAL</div><div class="musicas" id="musicasBox"></div><audio id="audioMusica" loop></audio><div style="display:flex;gap:6px;margin-top:6px"><button class="btn btn-dark" style="flex:1" onclick="toggleMusica()">▶️/⏸️ MÚSICA</button><input type="range" id="volMusica" min="0" max="100" value="30" style="flex:1"></div></div>
+<div class="card"><div class="label">4️⃣ EFEITO</div><div class="estilos" id="efeitosBox"></div></div>
+<div class="card" style="background:#25D366;"><button class="btn" style="background:#000;color:#25D366;font-size:18px;padding:16px" onclick="exportarStatus()">⬇️ EXPORTAR PRONTO PRO STATUS</button><small style="color:#000;display:block;text-align:center;margin-top:6px;font-weight:900">Sem marca d'água</small></div>
+<div id="modalCam" style="display:none;position:fixed;inset:0;background:#000;z-index:100;padding:10px"><video id="camPreview" autoplay muted playsinline style="width:100%;height:75vh;object-fit:cover;border-radius:16px;background:#111"></video><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px"><button class="btn btn-green" id="btnRecCam" onclick="gravarCam()">🔴 GRAVAR</button><button class="btn btn-dark" onclick="fecharCam()">FECHAR</button></div></div>
+<script>
+let videoEl=document.getElementById('videoPreview');let canvas=document.getElementById('canvasLegenda');let ctx=canvas.getContext('2d');let streamCam=null,recCam=null,chunksCam=[];let estiloAtual='kwai',efeitoAtual='original',musicaAtual='none',espelhado=false;let palavras=[];
+const estilos=[{id:'kwai',nome:'KWAI BOLD',exemplo:'🔥'},{id:'box',nome:'CAIXA PRETA',exemplo:'⬛'},{id:'neon',nome:'NEON',exemplo:'🌈'},{id:'contorno',nome:'CONTORNO',exemplo:'✏️'}];
+const efeitos=[{id:'original',nome:'Original',filter:'none'},{id:'beleza',nome:'Beleza',filter:'brightness(1.18) contrast(1.08) saturate(1.15)'},{id:'vintage',nome:'Vintage',filter:'sepia(0.4) contrast(1.2) saturate(1.2)'},{id:'cinema',nome:'Cinema',filter:'contrast(1.3) saturate(0.3)'},{id:'quente',nome:'Quente',filter:'sepia(0.2) saturate(1.6) hue-rotate(-15deg)'},{id:'neon',nome:'Neon',filter:'hue-rotate(90deg) saturate(2) contrast(1.2)'}];
+const musicas=[{id:'none',nome:'Sem música',icon:'🔇',url:''},{id:'viral1',nome:'Viral TikTok',icon:'🔥',url:'https://cdn.pixabay.com/download/audio/2022/03/10/audio_c8c8a73467.mp3'},{id:'viral2',nome:'Funk Hit',icon:'🎵',url:'https://cdn.pixabay.com/download/audio/2022/06/07/audio_b9bd4170e8.mp3'},{id:'viral3',nome:'Motivacional',icon:'💪',url:'https://cdn.pixabay.com/download/audio/2021/08/04/audio_0625c1539c.mp3'}];
+function montarUI(){let h='';estilos.forEach(e=>{h+=`<div class="estilo ${e.id===estiloAtual?'ativo':''}" onclick="setEstilo('${e.id}')">${e.exemplo}<br>${e.nome}</div>`});document.getElementById('estilosBox').innerHTML=h;h='';efeitos.forEach(e=>{h+=`<div class="estilo ${e.id===efeitoAtual?'ativo':''}" onclick="setEfeito('${e.id}')"><span style="font-size:22px">✨</span><br>${e.nome}</div>`});document.getElementById('efeitosBox').innerHTML=h;h='';musicas.forEach(m=>{h+=`<div class="musica ${m.id===musicaAtual?'ativa':''}" onclick="setMusica('${m.id}')"><span>${m.icon}</span><b>${m.nome}</b></div>`});document.getElementById('musicasBox').innerHTML=h;}
+function setEstilo(id){estiloAtual=id;montarUI();desenharLegenda()}function setEfeito(id){efeitoAtual=id;let e=efeitos.find(x=>x.id===id);videoEl.style.filter=e.filter;montarUI()}function setMusica(id){musicaAtual=id;let m=musicas.find(x=>x.id===id);let aud=document.getElementById('audioMusica');if(m.url){aud.src=m.url;aud.volume=document.getElementById('volMusica').value/100;aud.play().catch(()=>{})}else{aud.pause();aud.src=''};montarUI()}function toggleMusica(){let aud=document.getElementById('audioMusica');if(aud.paused)aud.play();else aud.pause()}document.getElementById('volMusica').oninput=e=>{document.getElementById('audioMusica').volume=e.target.value/100}
+document.getElementById('fileVideo').onchange=e=>{let file=e.target.files[0];if(!file)return;let url=URL.createObjectURL(file);videoEl.src=url;document.getElementById('previewWrap').style.display='block';videoEl.onloadedmetadata=()=>{canvas.width=720;canvas.height=1280;videoEl.play();desenharLegenda()}}
+function removerVideo(){videoEl.src='';document.getElementById('previewWrap').style.display='none'}function espelhar(){espelhado=!espelhado;videoEl.style.transform=espelhado?'scaleX(-1)':'scaleX(1)'}
+document.getElementById('textoLegenda').oninput=e=>{let txt=e.target.value.trim();if(!txt){palavras=[];desenharLegenda();return}palavras=txt.split(/\s+/).slice(0,12);renderPalavras();desenharLegenda()}
+function renderPalavras(){let div=document.getElementById('legendaAuto');if(!palavras.length){div.innerHTML='<small>Sem palavras</small>';return}div.innerHTML='';palavras.forEach((p,i)=>{div.innerHTML+=`<span class="palavra" onclick="editarPalavra(${i})">${p}</span>`})}
+function editarPalavra(i){let n=prompt('Editar:',palavras[i]);if(n!==null){palavras[i]=n;document.getElementById('textoLegenda').value=palavras.join(' ');renderPalavras();desenharLegenda()}}
+function gerarAuto(){let frases=["FIQUEI RICO COM ISSO 🔥","VOCE NAO VAI ACREDITAR!","OLHA O QUE ACONTECEU","SEGREDO REVELADO","FUNCIONA MESMO!","TESTEI E APROVEI","NINGUEM TE CONTA ISSO","METODO NOVO 2026","GANHEI R$ 300 HOJE","ISSO MUDOU MINHA VIDA"];let f=frases[Math.floor(Math.random()*frases.length)];document.getElementById('textoLegenda').value=f;palavras=f.split(/\s+/);renderPalavras();desenharLegenda()}
+function transcrever(){if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){alert('Navegador não suporta, digite manual');return}let Rec=window.SpeechRecognition||window.webkitSpeechRecognition;let rec=new Rec();rec.lang='pt-BR';rec.onstart=()=>{document.getElementById('legendaAuto').innerHTML='🎙️ Ouvindo... fale!'};rec.onresult=e=>{let txt=e.results[0][0].transcript.toUpperCase();document.getElementById('textoLegenda').value=txt;palavras=txt.split(/\s+/).slice(0,12);renderPalavras();desenharLegenda()};rec.start()}
+function desenharLegenda(){if(!canvas.width)return;ctx.clearRect(0,0,canvas.width,canvas.height);if(!palavras.length)return;let size=parseInt(document.getElementById('rangeSize').value);let yPerc=parseInt(document.getElementById('rangeY').value);let y=(canvas.height*yPerc/100);let text=palavras.join(' ');ctx.textAlign='center';ctx.font=`900 ${size}px Arial Black, Arial`;if(estiloAtual==='kwai'){ctx.lineWidth=size/4;ctx.strokeStyle='#000';ctx.strokeText(text,canvas.width/2,y);ctx.fillStyle='#ffcc00';ctx.fillText(text,canvas.width/2,y)}else if(estiloAtual==='box'){let metrics=ctx.measureText(text);let pad=20;ctx.fillStyle='rgba(0,0,0,0.85)';ctx.fillRect(canvas.width/2-metrics.width/2-pad,y-size-pad/2,metrics.width+pad*2,size+pad);ctx.fillStyle='#fff';ctx.fillText(text,canvas.width/2,y)}else if(estiloAtual==='neon'){ctx.shadowColor='#25D366';ctx.shadowBlur=20;ctx.fillStyle='#fff';ctx.fillText(text,canvas.width/2,y);ctx.shadowBlur=0}else if(estiloAtual==='contorno'){ctx.lineWidth=size/5;ctx.strokeStyle='#fff';ctx.strokeText(text,canvas.width/2,y);ctx.fillStyle='#ff0050';ctx.fillText(text,canvas.width/2,y)}}setInterval(desenharLegenda,100);
+async function abrirCamera(){document.getElementById('modalCam').style.display='block';try{streamCam=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:true});document.getElementById('camPreview').srcObject=streamCam}catch(e){alert('Erro câmera')}}
+function fecharCam(){document.getElementById('modalCam').style.display='none';if(streamCam)streamCam.getTracks().forEach(t=>t.stop())}
+async function gravarCam(){if(!recCam||recCam.state==='inactive'){chunksCam=[];recCam=new MediaRecorder(streamCam);recCam.ondataavailable=e=>{if(e.data.size>0)chunksCam.push(e.data)};recCam.onstop=()=>{let blob=new Blob(chunksCam,{type:'video/webm'});let url=URL.createObjectURL(blob);videoEl.src=url;document.getElementById('previewWrap').style.display='block';videoEl.onloadedmetadata=()=>{canvas.width=720;canvas.height=1280;videoEl.play()};fecharCam();document.getElementById('btnRecCam').innerText='🔴 GRAVAR'};recCam.start();document.getElementById('btnRecCam').innerText='⏹️ PARAR'}else{recCam.stop()}}
+async function exportarStatus(){if(!videoEl.src){alert('Escolha vídeo!');return}let finalCanvas=document.createElement('canvas');finalCanvas.width=720;finalCanvas.height=1280;let fCtx=finalCanvas.getContext('2d');let streamFinal=finalCanvas.captureStream(30);let recorder=new MediaRecorder(streamFinal,{mimeType:'video/webm'});let chunks=[];recorder.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data)};recorder.onstop=()=>{let blob=new Blob(chunks,{type:'video/webm'});let url=URL.createObjectURL(blob);let a=document.createElement('a');a.href=url;a.download='status_pronto_'+Date.now()+'.webm';a.click();alert('✅ Pronto pro Status!')};recorder.start();let eFilter=efeitos.find(x=>x.id===efeitoAtual).filter;let drawLoop=setInterval(()=>{if(recorder.state==='inactive'){clearInterval(drawLoop);return}fCtx.filter=eFilter;if(espelhado){fCtx.save();fCtx.scale(-1,1);fCtx.drawImage(videoEl,-finalCanvas.width,0,finalCanvas.width,finalCanvas.height);fCtx.restore()}else{fCtx.drawImage(videoEl,0,0,finalCanvas.width,finalCanvas.height)}if(palavras.length){let size=38;let text=palavras.join(' ');fCtx.textAlign='center';fCtx.font=`900 ${size}px Arial Black`;let y=finalCanvas.height*0.75;fCtx.lineWidth=size/4;fCtx.strokeStyle='#000';fCtx.strokeText(text,finalCanvas.width/2,y);fCtx.fillStyle='#ffcc00';fCtx.fillText(text,finalCanvas.width/2,y)}},33);setTimeout(()=>{recorder.stop()},videoEl.duration?videoEl.duration*1000:8000);videoEl.currentTime=0;videoEl.play()}
+montarUI();
+</script>
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js');}</script>
+</body>
+</html>
